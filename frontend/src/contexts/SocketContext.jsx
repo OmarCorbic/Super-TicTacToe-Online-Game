@@ -9,7 +9,7 @@ export const useSocket = () => {
 
 const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
-  const ip = "192.168.0.21";
+  const ip = "";
   const localhost = "localhost";
 
   useEffect(() => {

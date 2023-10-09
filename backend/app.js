@@ -7,7 +7,6 @@ const BasicTTTGame = require("./classes/BasicTTTGame.js");
 const { v4: uuid } = require("uuid");
 
 const PORT = 8000;
-const IP = "192.168.0.21";
 const expressServer = app.listen(PORT, () =>
   console.log(`Express server listening on port ${PORT}`)
 );
