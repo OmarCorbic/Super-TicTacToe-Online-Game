@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSocket } from "../contexts/SocketContext";
 import {
   updateGame,
@@ -18,36 +18,56 @@ const Multiplayer = () => {
   const [createMode, setCreateMode] = useState("");
   const [findMode, setFindMode] = useState("");
 
-  socket?.on("roomCreated", (roomId) => {
-    console.log(roomId);
-  });
+  useEffect(() => {
+    socket?.on("roomCreated", (roomId) => {
+      console.log(roomId);
+    });
 
-  socket?.on("roomJoined", (room) => {
-    const { mode, id, game, clients } = room;
-    if (mode) {
-      dispatch(updateGameMode(mode));
-    }
-    if (id) {
-      dispatch(updateRoomId(id));
-    }
-    if (clients) {
+    return () => {
+      socket?.off("roomCreated");
+    };
+  }, [socket]);
+
+  useEffect(() => {
+    socket?.on("roomJoined", (room) => {
+      const { mode, id, game, clients } = room;
+      if (mode) {
+        dispatch(updateGameMode(mode));
+      }
+      if (id) {
+        dispatch(updateRoomId(id));
+      }
+      if (clients) {
+        dispatch(updateRoomClients(clients));
+      }
+      if (game) {
+        dispatch(updateGame(game));
+      }
+    });
+
+    return () => {
+      socket?.off("roomJoined");
+    };
+  }, [socket]);
+
+  useEffect(() => {
+    socket?.on("clientsUpdated", (clients) => {
       dispatch(updateRoomClients(clients));
-    }
-    if (game) {
+    });
+
+    return () => {
+      socket?.off("clientsUpdated");
+    };
+  }, [socket]);
+
+  useEffect(() => {
+    socket?.on("gameUpdated", (game) => {
       dispatch(updateGame(game));
-    }
-  });
+    });
 
-  socket?.on("clientsUpdated", (clients) => {
-    dispatch(updateRoomClients(clients));
-  });
-
-  socket?.on("gameUpdated", (game) => {
-    dispatch(updateGame(game));
-  });
-
-  socket?.on("error", (error) => {
-    toast.error(error);
+    return () => {
+      socket?.off("gameUpdated");
+    };
   });
 
   const handleCreateRoom = () => {
