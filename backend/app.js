@@ -52,7 +52,7 @@ io.on("connection", (socket) => {
     const room = {
       mode: gameMode,
       // id: uuid(),
-      id: "room" + (rooms.length || 0),
+      id: "room" + (Object.keys(rooms).length || "0"),
       clients: [],
     };
 
