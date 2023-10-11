@@ -33,7 +33,7 @@ const Game = () => {
         side="Opponent"
         turn={playerTurn.playerId === opponent.playerId}
       />
-      {!roomClients.length < 2 ? (
+      {roomClients.length < 2 ? (
         <div className="relative flex items-center justify-center">
           <div className=" flex h-52 w-52 animate-spin items-center justify-center rounded-full border-2 border-cyan-100 p-5 text-xl font-bold text-pink-300 shadow-[inset_-5px_-5px_20px_1px_rgba(0,0,0,0.1),_5px_5px_20px_1px_rgba(45,78,255,0.15)] shadow-cyan-400 md:h-80 md:w-80"></div>
           <p className="absolute flex flex-col text-center text-xs font-bold text-white md:text-xl">

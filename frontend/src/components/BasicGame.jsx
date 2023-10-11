@@ -25,7 +25,6 @@ const BasicGame = ({ basicCell = null, posSuper = null }) => {
       payLoad.posSuper = posSuper;
     }
 
-    console.log(payLoad);
     socket.emit("play", payLoad);
   };
 

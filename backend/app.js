@@ -6,13 +6,13 @@ const SuperTTTGame = require("./classes/SuperTTTGame.js");
 const BasicTTTGame = require("./classes/BasicTTTGame.js");
 const { v4: uuid } = require("uuid");
 
+app.use(cors({ origin: "*" }));
+app.use(express.static(__dirname + "/build"));
+
 const PORT = 8000;
 const expressServer = app.listen(PORT, () =>
   console.log(`Express server listening on port ${PORT}`)
 );
-
-app.use(cors({ origin: "*" }));
-app.use(express.static(__dirname + "/build"));
 
 const io = socketio(expressServer, { cors: { origin: "*" } });
 
@@ -28,8 +28,8 @@ io.on("connection", (socket) => {
     const room = rooms[roomId];
     const game = room.game;
 
-    if (!game) return; // game hasn't started yet
     if (!room) return; // room doesn't exist
+    if (!game) return; // game hasn't started yet
 
     if (socket.id !== game.playerTurn.playerId) return; // not your turn
 
@@ -52,7 +52,7 @@ io.on("connection", (socket) => {
     const room = {
       mode: gameMode,
       // id: uuid(),
-      id: "omar",
+      id: "room" + (rooms.length || 0),
       clients: [],
     };
 
@@ -99,6 +99,7 @@ io.on("connection", (socket) => {
     socket.leave(roomId);
     const room = rooms[roomId];
     room.clients = room.clients.filter((c) => c.playerId !== socket.id);
+
     const game = room.game;
     if (game && !game.winner) {
       game.winner = room.clients[0];
@@ -109,15 +110,3 @@ io.on("connection", (socket) => {
     io.to(roomId).emit("clientsUpdated", room.clients);
   });
 });
-
-// const playerOne = uuid();
-// const playerTwo = uuid();
-
-// const superGame = new SuperTTTGame(playerOne, playerTwo);
-
-// superGame.play({ x: 1, y: 0 }, { x: 0, y: 0 });
-// console.table(superGame.board);
-// console.table(superGame.board[0][1].board);
-// superGame.play({ x: 0, y: 0 }, { x: 0, y: 1 });
-// console.table(superGame.board);
-// console.table(superGame.board[0][0].board);

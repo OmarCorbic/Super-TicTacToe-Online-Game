@@ -1,7 +1,5 @@
 import { useRef, useState } from "react";
 import { useSocket } from "../contexts/SocketContext";
-import SuperGame from "./SuperGame";
-import BasicGame from "./BasicGame";
 import {
   updateGame,
   updateGameMode,
@@ -26,7 +24,6 @@ const Multiplayer = () => {
 
   socket?.on("roomJoined", (room) => {
     const { mode, id, game, clients } = room;
-    console.log(room);
     if (mode) {
       dispatch(updateGameMode(mode));
     }
