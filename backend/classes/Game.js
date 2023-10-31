@@ -14,8 +14,8 @@ class Game {
   constructor(board, playerOne, playerTwo, gameMode) {
     this.gameId = uuid();
     this.board = board;
-    this.playerOne = { playerId: playerOne, sign: "X" };
-    this.playerTwo = { playerId: playerTwo, sign: "O" };
+    this.playerOne = { ...playerOne, sign: "X" };
+    this.playerTwo = { ...playerTwo, sign: "O" };
     this.playerTurn = this.playerOne;
     this.gameState = "playing";
     this.winner = null;
