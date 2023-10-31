@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import background from "../images/background.png";
 import { IoMdArrowRoundBack } from "react-icons/io";
@@ -14,10 +14,19 @@ const RootLayout = () => {
   const isIndexPage = location.pathname === "/";
 
   const goBack = () => {
-    if (location.pathname === "/multiplayer" && gameState.game) {
+    if (gameState.roomId) {
       socket.emit("leaveRoom", gameState.roomId);
-      console.log("left room");
       dispatch(leaveRoom());
+      navigate("/multiplayer");
+      return;
+    }
+    if (location.pathname === "/multiplayer") {
+      navigate("/menu");
+      return;
+    }
+    if (location.pathname === "/menu") {
+      navigate("/");
+      return;
     }
     navigate(-1);
   };
