@@ -1,74 +1,17 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useSocket } from "../contexts/SocketContext";
-import {
-  updateGame,
-  updateGameMode,
-  updateRoomClients,
-  updateRoomId,
-  useGameState,
-} from "../contexts/GameContext";
+import { useGameState } from "../contexts/GameContext";
 import toast from "react-hot-toast";
-import Game from "./Game";
+import { getTokenPayload } from "../utils/getTokenPayload";
+import { Navigate } from "react-router-dom";
 
 const Multiplayer = () => {
-  const [gameState, dispatch] = useGameState();
+  const [gameState] = useGameState();
   const socket = useSocket();
   const inputRef = useRef();
 
   const [createMode, setCreateMode] = useState("");
   const [findMode, setFindMode] = useState("");
-
-  useEffect(() => {
-    socket?.on("roomCreated", (roomId) => {
-      console.log(roomId);
-    });
-
-    return () => {
-      socket?.off("roomCreated");
-    };
-  }, [socket]);
-
-  useEffect(() => {
-    socket?.on("roomJoined", (room) => {
-      const { mode, id, game, clients } = room;
-      if (mode) {
-        dispatch(updateGameMode(mode));
-      }
-      if (id) {
-        dispatch(updateRoomId(id));
-      }
-      if (clients) {
-        dispatch(updateRoomClients(clients));
-      }
-      if (game) {
-        dispatch(updateGame(game));
-      }
-    });
-
-    return () => {
-      socket?.off("roomJoined");
-    };
-  }, [socket]);
-
-  useEffect(() => {
-    socket?.on("clientsUpdated", (clients) => {
-      dispatch(updateRoomClients(clients));
-    });
-
-    return () => {
-      socket?.off("clientsUpdated");
-    };
-  }, [socket]);
-
-  useEffect(() => {
-    socket?.on("gameUpdated", (game) => {
-      dispatch(updateGame(game));
-    });
-
-    return () => {
-      socket?.off("gameUpdated");
-    };
-  });
 
   const handleCreateRoom = () => {
     if (!createMode) {
@@ -85,13 +28,19 @@ const Multiplayer = () => {
       toast.error("Please type in room id");
       return;
     }
-    socket?.emit("joinRoom", roomId);
+    let socketPayload = { roomId };
+    const tokenPayload = getTokenPayload();
+    if (tokenPayload) {
+      socketPayload.userId = tokenPayload.userId;
+    }
+
+    socket?.emit("joinRoom", socketPayload);
   };
 
   const handleFindGame = () => {};
 
   if (gameState.game) {
-    return <Game />;
+    return <Navigate to={`/game/${gameState.game.gameId}`} />;
   }
 
   return (
