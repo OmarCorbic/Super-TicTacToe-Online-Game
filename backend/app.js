@@ -1,112 +1,42 @@
+require("dotenv").config();
+require("express-async-errors");
+const { connectDB } = require("./db/connectDB.js");
 const express = require("express");
-const app = express();
-const socketio = require("socket.io");
+const startSocketIo = require("./socket.js");
 const cors = require("cors");
-const SuperTTTGame = require("./classes/SuperTTTGame.js");
-const BasicTTTGame = require("./classes/BasicTTTGame.js");
-const { v4: uuid } = require("uuid");
+const path = require("path");
 
+const app = express();
+app.use(express.json());
 app.use(cors({ origin: "*" }));
+
+// routers
+const errorHandlerMiddleware = require("./middleware/error-handler.js");
+const authRouter = require("./routes/auth.js");
+
 app.use(express.static(__dirname + "/build"));
+// routes
+app.use("/api/auth", authRouter);
+app.use(errorHandlerMiddleware);
 
-const PORT = 8000;
-const expressServer = app.listen(PORT, () =>
-  console.log(`Express server listening on port ${PORT}`)
-);
-
-const io = socketio(expressServer, { cors: { origin: "*" } });
-
-const rooms = {};
-
-io.on("connection", (socket) => {
-  socket.on("disconnect", () => {
-    console.log(socket.id + "disconnected");
-  });
-
-  socket.on("play", (payLoad) => {
-    const { roomId, posBasic, posSuper } = payLoad;
-    const room = rooms[roomId];
-    const game = room.game;
-
-    if (!room) return; // room doesn't exist
-    if (!game) return; // game hasn't started yet
-
-    if (socket.id !== game.playerTurn.playerId) return; // not your turn
-
-    if (posSuper) {
-      const played = game.play(posSuper, posBasic);
-
-      if (!played) return; // can't play that field (super)
-
-      io.to(roomId).emit("gameUpdated", game);
-      return;
-    }
-    const played = game.play(posBasic);
-    if (!played) return; // can't play that field (basic)
-
-    io.to(roomId).emit("gameUpdated", game);
-    return;
-  });
-
-  socket.on("createRoom", (gameMode) => {
-    const room = {
-      mode: gameMode,
-      // id: uuid(),
-      id: "room" + (Object.keys(rooms).length || "0"),
-      clients: [],
-    };
-
-    rooms[room.id] = room;
-    socket.emit("roomCreated", room.id);
-  });
-
-  socket.on("joinRoom", (roomId) => {
-    if (!roomId) return;
-
-    const room = rooms[roomId];
-    const clientId = socket.id;
-
-    if (!room) return; // room doesn't exist
-    if (room.clients.length === 2) return; // room full
-    const isPlayerTwo = room.clients.length === 1;
-
-    if (isPlayerTwo) {
-      room.clients.push(clientId);
-      const playerOneId = room.clients[0];
-      const playerTwoId = room.clients[1];
-      let game = {};
-      if (room.mode === "SUPER") {
-        game = new SuperTTTGame(playerOneId, playerTwoId);
-      } else {
-        game = new BasicTTTGame(playerOneId, playerTwoId);
-      }
-
-      room.clients[0] = game.playerOne;
-      room.clients[1] = game.playerTwo;
-
-      socket.join(roomId);
-      rooms[roomId].game = game;
-      io.to(roomId).emit("roomJoined", room);
-      return;
-    }
-
-    socket.join(roomId);
-    room.clients.push(clientId);
-    socket.emit("roomJoined", room);
-  });
-
-  socket.on("leaveRoom", (roomId) => {
-    socket.leave(roomId);
-    const room = rooms[roomId];
-    room.clients = room.clients.filter((c) => c.playerId !== socket.id);
-
-    const game = room.game;
-    if (game && !game.winner) {
-      game.winner = room.clients[0];
-      game.gameState = "finished";
-    }
-
-    io.to(roomId).emit("gameUpdated", game);
-    io.to(roomId).emit("clientsUpdated", room.clients);
-  });
+app.get("*", (req, res) => {
+  return res.sendFile(path.join(__dirname, "build", "index.html"));
 });
+
+const PORT = process.env.PORT || 8000;
+
+const startExpressServer = () => {
+  return app.listen(PORT, () =>
+    console.log(`Express server listening on port ${PORT}`)
+  );
+};
+
+connectDB(process.env.MONGO_URI)
+  .then(() => {
+    console.log("Connected to the DB");
+    const expressServer = startExpressServer();
+    startSocketIo(expressServer);
+  })
+  .catch((error) => {
+    console.log("Error connecting to the database: ", error);
+  });
