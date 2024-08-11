@@ -15,7 +15,7 @@ const SocketProvider = ({ children }) => {
   const [gameState, dispatch] = useGameState();
   // https://super-tictactoe-online.onrender.com
   useEffect(() => {
-    const newSocket = io("ws://localhost:10000");
+    const newSocket = io("wss://super-tictactoe-online.onrender.com");
 
     setSocket(newSocket);
     return () => {
