@@ -15,7 +15,7 @@ const Multiplayer = () => {
 
   const handleCreateRoom = () => {
     if (!createMode) {
-      toast.error("Please chose game mode");
+      toast.error("Please choose game mode");
       return;
     }
     socket?.emit("createRoom", createMode);
@@ -34,10 +34,25 @@ const Multiplayer = () => {
       socketPayload.userId = tokenPayload.userId;
     }
 
-    socket?.emit("joinRoom", socketPayload);
+    socket?.emit("joinRoom", socketPayload, (response) => {
+      if (!response.success) {
+        toast.error(response.message);
+      }
+    });
   };
 
-  const handleFindGame = () => {};
+  const handleFindGame = () => {
+    if (!findMode) {
+      toast.error("Please choose game mode");
+      return;
+    }
+
+    socket?.emit("findGame", findMode, (response) => {
+      if (!response.success) {
+        toast.error(response.message);
+      }
+    });
+  };
 
   if (gameState.game) {
     return <Navigate to={`/game/${gameState.game.gameId}`} />;

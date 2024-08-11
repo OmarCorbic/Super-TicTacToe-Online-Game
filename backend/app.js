@@ -35,7 +35,11 @@ connectDB(process.env.MONGO_URI)
   .then(() => {
     console.log("Connected to the DB");
     const expressServer = startExpressServer();
-    startSocketIo(expressServer);
+    try {
+      startSocketIo(expressServer);
+    } catch (error) {
+      console.log(error);
+    }
   })
   .catch((error) => {
     console.log("Error connecting to the database: ", error);

@@ -12,7 +12,11 @@ const Game = () => {
   const [{ game, roomClients, roomId }, dispatch] = useGameState();
 
   const goBack = () => {
-    socket.emit("leaveRoom", roomId);
+    socket.emit("leaveRoom", roomId, (response) => {
+      if (!response.success) {
+        toast.error(response.message);
+      }
+    });
     dispatch(leaveRoom());
     navigate("/multiplayer");
   };

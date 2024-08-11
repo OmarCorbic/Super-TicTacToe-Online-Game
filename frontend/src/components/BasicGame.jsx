@@ -1,3 +1,4 @@
+import toast from "react-hot-toast";
 import { useGameState } from "../contexts/GameContext";
 import { useSocket } from "../contexts/SocketContext";
 
@@ -25,7 +26,11 @@ const BasicGame = ({ basicCell = null, posSuper = null }) => {
       payLoad.posSuper = posSuper;
     }
 
-    socket.emit("play", payLoad);
+    socket.emit("play", payLoad, (response) => {
+      if (!response.success) {
+        toast.error(response.message);
+      }
+    });
   };
 
   if (!basicCell && !posSuper && game.gameMode === "BASIC") {

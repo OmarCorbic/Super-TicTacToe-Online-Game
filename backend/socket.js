@@ -40,25 +40,40 @@ module.exports = (server) => {
       }
     });
 
-    socket.on("play", (payLoad) => {
+    socket.on("play", (payLoad, onError) => {
       const { roomId, posBasic, posSuper } = payLoad;
       const room = rooms[roomId];
-      if (!room) return; // room doesn't exist
+      if (!room) {
+        onError({ success: false, message: "Room doesn't exist" });
+        return;
+      } // room doesn't exist
       const game = room.game;
-      if (!game) return; // game hasn't started yet
+      if (!game) {
+        onError({ success: false, message: "The game has not started yet" });
+        return;
+      } // game hasn't started yet
 
-      if (socket.id !== game.playerTurn.playerId) return; // not your turn
+      if (socket.id !== game.playerTurn.playerId) {
+        onError({ success: false, message: "It's not your turn yet" });
+        return;
+      } // not your turn
 
       if (posSuper) {
         const played = game.play(posSuper, posBasic);
 
-        if (!played) return; // can't play that field (super)
+        if (!played) {
+          onError({ success: false, message: "You can't play that field" });
+          return;
+        } // can't play that field (super)
 
         io.to(roomId).emit("gameUpdated", game);
         return;
       }
       const played = game.play(posBasic);
-      if (!played) return; // can't play that field (basic)
+      if (!played) {
+        onError({ success: false, message: `You can't play that field` });
+        return;
+      } // can't play that field (basic)
 
       io.to(roomId).emit("gameUpdated", game);
       return;
@@ -76,17 +91,41 @@ module.exports = (server) => {
       socket.emit("roomCreated", room.id);
     });
 
-    socket.on("joinRoom", async ({ roomId, userId }) => {
-      if (!roomId) return;
+    socket.on("findGame", (mode, onError) => {
+      for (const roomId in rooms) {
+        if (Object.prototype.hasOwnProperty.call(rooms, roomId)) {
+          const room = rooms[roomId];
+          if (room.clients.length === 1 && room.mode === mode) {
+            socket.emit("gameFound", roomId);
+            return;
+          }
+        }
+      }
+      onError({ success: false, message: `No ${mode} games found` });
+    });
+
+    socket.on("joinRoom", async ({ roomId, userId }, onError) => {
+      if (!roomId) {
+        onError({ success: false, message: `Invalid room id` });
+        return;
+      }
 
       const room = rooms[roomId];
       const clientId = socket.id;
 
-      if (!room) return; // room doesn't exist
-      if (room?.game && room.game.gameState === "finished") return;
-      if (room.clients.length === 2) return; // room full
+      if (!room) {
+        onError({ success: false, message: `Room doesn't exist` });
+        return;
+      } // room doesn't exist
+      if (room?.game && room.game.gameState === "finished") {
+        onError({ success: false, message: `Game in that room is finished` });
+        return;
+      }
+      if (room.clients.length === 2) {
+        onError({ success: false, message: `Room is full` });
+        return;
+      } // room full
       const isPlayerTwo = room.clients.length === 1;
-
       if (isPlayerTwo) {
         const client = { clientId };
         if (userId) {
@@ -138,10 +177,13 @@ module.exports = (server) => {
       socket.emit("roomJoined", room);
     });
 
-    socket.on("leaveRoom", (roomId) => {
+    socket.on("leaveRoom", (roomId, onError) => {
       socket.leave(roomId);
       const room = rooms[roomId];
-      if (!room) return; // room doesn't exist
+      if (!room) {
+        onError({ success: false, message: `Room doesn't exist` });
+        return;
+      } // room doesn't exist
 
       if (room.clients.length <= 1) {
         delete rooms[roomId];

@@ -16,11 +16,15 @@ class BasicTTTGame extends Game {
 
   play(pos) {
     if (this.gameState !== "finished") {
-      if (pos.x >= this.board.length || pos.y >= this.board.length)
+      if (pos.x >= this.board.length || pos.y >= this.board.length) {
         return false;
-
-      if (this.board[pos.y][pos.x] === "X" || this.board[pos.y][pos.x] === "O")
+      }
+      if (
+        this.board[pos.y][pos.x] === "X" ||
+        this.board[pos.y][pos.x] === "O"
+      ) {
         return false;
+      }
 
       this.board[pos.y][pos.x] = this.playerTurn.sign;
       this.changePlayerTurn();

@@ -1,8 +1,10 @@
 import axios from "axios";
 import React, { useState } from "react";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const Login = ({ showRegister }) => {
+  const navigate = useNavigate();
   const [loginData, setLoginData] = useState({
     email: "",
     password: "",
@@ -17,9 +19,9 @@ const Login = ({ showRegister }) => {
   const submitLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("/api/auth/login", loginData);
+      await axios.post("/api/auth/login", loginData);
+      navigate("/multiplayer");
       toast.success("Successfully logged in!");
-      console.log(response);
     } catch (error) {
       toast.error(error?.response?.data?.message);
     }

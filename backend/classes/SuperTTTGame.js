@@ -40,7 +40,8 @@ class SuperTTTGame extends Game {
       const currentGame = this.board[posSuper.y][posSuper.x];
 
       currentGame.playerTurn = this.playerTurn;
-      currentGame.play(posBasic);
+      const played = currentGame.play(posBasic);
+      if (!played) return false;
 
       this.changePlayerTurn();
       this.board[posSuper.y][posSuper.x] = currentGame;

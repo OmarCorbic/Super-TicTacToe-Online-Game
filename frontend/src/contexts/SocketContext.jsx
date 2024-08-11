@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import { updateGameState, useGameState } from "./GameContext";
+import { getTokenPayload } from "../utils/getTokenPayload";
+import toast from "react-hot-toast";
 
 const SocketContext = createContext();
 
@@ -11,13 +13,11 @@ export const useSocket = () => {
 const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [gameState, dispatch] = useGameState();
-  const domain = "localhost";
-
+  // https://super-tictactoe-online.onrender.com
   useEffect(() => {
-    const newSocket = io(`ws://${domain}:8000`);
+    const newSocket = io("ws://localhost:10000");
 
     setSocket(newSocket);
-
     return () => {
       socket?.disconnect();
     };
@@ -25,7 +25,17 @@ const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     socket?.on("roomCreated", (roomId) => {
-      console.log(roomId);
+      let socketPayload = { roomId };
+      const tokenPayload = getTokenPayload();
+      if (tokenPayload) {
+        socketPayload.userId = tokenPayload.userId;
+      }
+
+      socket?.emit("joinRoom", socketPayload, (response) => {
+        if (!response.succes) {
+          toast.error(response.message);
+        }
+      });
     });
 
     return () => {
@@ -62,6 +72,21 @@ const SocketProvider = ({ children }) => {
 
     return () => {
       socket?.off("clientsUpdated");
+    };
+  }, [socket]);
+  useEffect(() => {
+    socket?.on("gameFound", (roomId) => {
+      let socketPayload = { roomId };
+      const tokenPayload = getTokenPayload();
+      if (tokenPayload) {
+        socketPayload.userId = tokenPayload.userId;
+      }
+
+      socket?.emit("joinRoom", socketPayload);
+    });
+
+    return () => {
+      socket?.off("gameFound");
     };
   }, [socket]);
 

@@ -10,6 +10,5 @@ export const getTokenPayload = () => {
   accessToken = accessToken.split("=")[1];
 
   const payload = jwt_decode(accessToken);
-  console.log(payload);
   return payload;
 };

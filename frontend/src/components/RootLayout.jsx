@@ -37,7 +37,12 @@ const RootLayout = () => {
         className="absolute left-0 top-0 -z-10 h-full w-full bg-cover blur-sm brightness-75"
         style={{ backgroundImage: `url(${background})` }}
       ></div>
-
+      {gameState?.roomId && (
+        <div className="absolute top-0  flex w-full items-center justify-end gap-2 px-3 py-2 text-lg font-bold text-white md:justify-center">
+          <span>Room id</span>
+          <span className="text-blue-400">{gameState.roomId}</span>
+        </div>
+      )}
       <Toaster />
 
       <button
