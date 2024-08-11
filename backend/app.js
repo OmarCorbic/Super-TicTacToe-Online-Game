@@ -4,7 +4,7 @@ const { connectDB } = require("./db/connectDB.js");
 const express = require("express");
 const startSocketIo = require("./socket.js");
 const cors = require("cors");
-const path = require("path");
+// const path = require("path");
 
 const app = express();
 app.use(express.json());
@@ -19,9 +19,9 @@ app.use(express.static(__dirname + "/build"));
 app.use("/api/auth", authRouter);
 app.use(errorHandlerMiddleware);
 
-app.get("*", (req, res) => {
-  return res.sendFile(path.join(__dirname, "build", "index.html"));
-});
+// app.get("*", (req, res) => {
+//   return res.sendFile(path.join(__dirname, "build", "index.html"));
+// });
 
 const PORT = process.env.PORT || 8000;
 
